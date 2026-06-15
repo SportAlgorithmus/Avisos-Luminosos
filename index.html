@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avisos Luminosos SNC - Neón LED Acrílico</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Particles.js -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <!-- jsPDF para reportes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --azul: #1E40AF;
+      --naranja: #FF4B1F;
+      --naranja-hover: #FF6B35;
+      --gris: #1F2937;
+      --gris-claro: #F1F5F9;
+      --blanco: #FFFFFF;
+      --sombra: 0 12px 30px rgba(0,0,0,0.12);
+      --sombra-hover: 0 20px 50px rgba(255,75,31,0.3);
+      --transicion: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      --brillo: 0 0 20px rgba(255,75,31,0.4);
+    }
+
+    [data-theme="dark"] {
+      --azul: #3B82F6;
+      --naranja: #FF6B35;
+      --naranja-hover: #FF8A50;
+      --gris: #E2E8F0;
+      --gris-claro: #1E293B;
+      --blanco: #0F172A;
+      --sombra: 0 12px 30px rgba(0,0,0,0.3);
+      --sombra-hover: 0 20px 50px rgba(59,130,246,0.4);
+      --brillo: 0 0 20px rgba(59,130,246,0.4);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--blanco);
+      color: var(--gris);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      transition: var(--transicion);
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      overflow-x: hidden;
+    }
+
+    [data-theme="dark"] body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    /* Login / Registro */
+    .auth-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 50%, #1E40AF 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .auth-container {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e40af 100%);
+    }
+
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,107,53,0.15) 10%, transparent 40%);
+      animation: pulse 8s infinite;
+      z-index: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .auth-card {
+      background: var(--blanco);
+      border-radius: 2rem;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+      padding: 3.5rem 3rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid rgba(255,107,53,0.2);
+      animation: fadeInUp 0.9s ease-out;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+      transition: var(--transicion);
+    }
+
+    [data-theme="dark"] .auth-card {
+      background: #1e293b;
+      border-color: rgba(59,130,246,0.3);
+      color: #e2e8f0;
+    }
+
+    .logo-auth {
+      width: 210px;
+      height: auto;
+      margin-bottom: 2rem;
+      border-radius: 50%;
+      border: 6px solid var(--naranja);
+      box-shadow: 0 0 30px rgba(255,75,31,0.4), 0 12px 35px rgba(30,58,138,0.3);
+      transition: var(--transicion);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .auth-card h2 {
+      color: var(--azul);
+      font-weight: 900;
+      font-size: 2.1rem;
+      margin-bottom: 1.8rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-control {
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 15px 18px;
+      font-size: 1.05rem;
+      margin-bottom: 1.2rem;
+      transition: var(--transicion);
+      background: #fafafa;
+      color: var(--gris);
+    }
+
+    [data-theme="dark"] .form-control {
+      background: #334155;
+      border-color: #475569;
+      color: #e2e8f0;
+    }
+
+    .form-control:focus {
+      border-color: var(--naranja);
+      box-shadow: var(--brillo), 0 0 0 5px rgba(255,75,31,0.2);
+      background: white;
+    }
+
+    [data-theme="dark"] .form-control:focus {
+      background: #1e293b;
+      box-shadow: 0 0 0 5px rgba(59,130,246,0.2), var(--brillo);
+    }
+
+    .btn-auth {
+      background: var(--naranja);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      width: 100%;
+      transition: var(--transicion);
+      box-shadow: 0 8px 25px rgba(255,75,31,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-auth::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: 0.6s;
+    }
+
+    .btn-auth:hover::before {
+      left: 100%;
+    }
+
+    .btn-auth:hover {
+      background: var(--naranja-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .link-auth {
+      color: var(--azul);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .link-auth:hover {
+      color: var(--naranja);
+      text-decoration: underline;
+    }
+
+    /* Dashboard Principal */
+    .dashboard {
+      min-height: 100vh;
+      padding: 3rem 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .dashboard {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    .particles-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .dashboard > .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: white;
+      border-radius: 1.8rem;
+      box-shadow: var(--sombra);
+      border-left: 7px solid var(--naranja);
+      position: relative;
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .dashboard-header,
+    [data-theme="dark"] .contact-card,
+    [data-theme="dark"] .gallery-section,
+    [data-theme="dark"] .crud-section {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+
+    .dashboard-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 6px;
+      background: linear-gradient(90deg, var(--naranja), #FFB84D, var(--naranja));
+      background-size: 200% 100%;
+      animation: shine 3s linear infinite;
+    }
+
+    @keyframes shine {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .logo-dashboard {
+      width: 190px;
+      height: 190px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      object-fit: contain;
+      animation: girar 8s linear infinite, glow 2s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 25px rgba(255,75,31,0.4));
+      cursor: pointer;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 20px rgba(255,75,31,0.3)); }
+      to { filter: drop-shadow(0 0 35px rgba(255,75,31,0.6)); }
+    }
+
+    [data-theme="dark"] .logo-dashboard {
+      filter: drop-shadow(0 0 25px rgba(59,130,246,0.5));
+    }
+
+    @keyframes girar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .dashboard-header h1 {
+      font-size: 3.2rem;
+      color: var(--azul);
+      font-weight: 900;
+      margin: 0.5rem 0;
+      background: linear-gradient(90deg, var(--azul), #3B82F6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .dashboard-header p {
+      font-size: 1.35rem;
+      color: var(--gris);
+      font-weight: 500;
+    }
+
+    .btn-ideas, .btn-admin {
+      background: var(--naranja);
+      color: white;
+      border: none;
+      padding: 1.1rem 3rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      transition: var(--transicion);
+      box-shadow: 0 8px 25px rgba(255,75,31,0.35);
+      position: relative;
+      overflow: hidden;
+      margin: 0.5rem;
+    }
+
+    .btn-ideas::after, .btn-admin::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-ideas:active::after, .btn-admin:active::after {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-ideas:hover, .btn-admin:hover {
+      background: var(--naranja-hover);
+      transform: translateY(-5px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .contact-card {
+      background: white;
+      border-radius: 1.4rem;
+      padding: 2.2rem;
+      margin: 2rem 0;
+      box-shadow: var(--sombra);
+      border-left: 6px solid var(--naranja);
+      transition: var(--transicion);
+    }
+
+    .contact-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    .contact-card h5 {
+      color: var(--azul);
+      font-weight: 800;
+      margin-bottom: 1.6rem;
+      font-size: 1.4rem;
+    }
+
+    .contact-card a {
+      color: var(--gris);
+      text-decoration: none;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      margin: 1rem 0;
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      transition: var(--transicion);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    [data-theme="dark"] .contact-card a {
+      background: #334155;
+      border-color: #475569;
+      color: #cbd5e1;
+    }
+
+    .contact-card a:hover {
+      background: linear-gradient(135deg, #fff5f0, #fef3c7);
+      color: var(--naranja);
+      transform: translateX(10px);
+      border-color: var(--naranja);
+      box-shadow: 0 5px 15px rgba(255,75,31,0.2);
+    }
+
+    [data-theme="dark"] .contact-card a:hover {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: white;
+    }
+
+    .contact-card i {
+      margin-right: 14px;
+      color: var(--naranja);
+      font-size: 1.4rem;
+      transition: var(--transicion);
+    }
+
+    .contact-card a:hover i {
+      transform: scale(1.2);
+    }
+
+    .btn-logout {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      margin-top: 2rem;
+      transition: var(--transicion);
+      box-shadow: 0 6px 20px rgba(220,53,69,0.3);
+    }
+
+    .btn-logout:hover {
+      background: #c82333;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(220,53,69,0.4);
+    }
+
+    /* CRUD de Personas */
+    .crud-section {
+      background: white;
+      border-radius: 1.8rem;
+      padding: 2.5rem;
+      box-shadow: var(--sombra);
+      margin-top: 2rem;
+    }
+
+    .crud-item {
+      background: #f8fafc;
+      border-left: 5px solid var(--naranja);
+      padding: 1.2rem;
+      margin: 1rem 0;
+      border-radius: 12px;
+      transition: var(--transicion);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    [data-theme="dark"] .crud-item {
+      background: #334155;
+      border-color: #3B82F6;
+    }
+
+    .crud-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(255,75,31,0.15);
+    }
+
+    .crud-info h6 {
+      margin: 0;
+      font-weight: 700;
+      color: var(--azul);
+    }
+
+    .crud-info p {
+      margin: 0.3rem 0 0;
+      font-size: 0.9rem;
+      color: var(--gris);
+    }
+
+    .btn-edit, .btn-delete {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      margin-left: 0.5rem;
+    }
+
+    .btn-edit {
+      background: #3B82F6;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-add {
+      background: var(--naranja);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      transition: var(--transicion);
+    }
+
+    .btn-add:hover {
+      background: var(--naranja-hover);
+      transform: translateY(-3px);
+    }
+
+    /* Galería */
+    .gallery-section {
+      padding: 4rem 1rem;
+      background: white;
+      border-radius: 1.8rem;
+      box-shadow: var(--sombra);
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 2.2rem;
+      margin-top: 2rem;
+    }
+
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.8rem;
+      box-shadow: var(--sombra);
+      cursor: pointer;
+      transition: var(--transicion);
+      border: 3px solid transparent;
+      background: white;
+    }
+
+    [data-theme="dark"] .gallery-item {
+      background: #1e293b;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-12px);
+      box-shadow: var(--sombra-hover);
+      border-color: var(--naranja);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      transition: all 0.6s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.18);
+    }
+
+    .gallery-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(30,58,138,0.95));
+      color: white;
+      padding: 2rem 1.2rem 1.2rem;
+      transform: translateY(60%);
+      transition: all 0.5s ease;
+      backdrop-filter: blur(3px);
+    }
+
+    [data-theme="dark"] .gallery-overlay {
+      background: linear-gradient(transparent, rgba(15,23,42,0.95));
+    }
+
+    .gallery-item:hover .gallery-overlay {
+      transform: translateY(0);
+    }
+
+    .gallery-overlay h5 {
+      font-weight: 800;
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .gallery-overlay p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .btn-back {
+      background: var(--azul);
+      color: white;
+      border: none;
+      padding: 0.9rem 2.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+      margin-top: 2rem;
+      transition: var(--transicion);
+      box-shadow: 0 6px 20px rgba(30,64,175,0.3);
+    }
+
+    .btn-back:hover {
+      background: #1a326f;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(30,64,175,0.4);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: var(--naranja);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 15px rgba(255,75,31,0.3);
+      transition: var(--transicion);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(255,75,31,0.4);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden { display: none !important; }
+
+    /* MODAL CORREGIDO PARA MODO OSCURO */
+    .modal-content {
+      background: var(--blanco);
+      color: var(--gris);
+    }
+
+    [data-theme="dark"] .modal-content {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+    }
+
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-control:focus {
+      background: #334155;
+      border-color: #475569;
+      color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .form-control::placeholder {
+      color: #94a3b8;
+    }
+
+    @media (max-width: 576px) {
+      .dashboard-header h1 { font-size: 2.4rem; }
+      .gallery { grid-template-columns: 1fr; }
+      .auth-card { padding: 2.5rem 2rem; }
+      .logo-dashboard { width: 150px; height: 150px; }
+      .btn-ideas, .btn-back, .btn-admin { padding: 1rem 2rem; font-size: 1rem; }
+      .theme-toggle { width: 45px; height: 45px; font-size: 1.1rem; top: 1rem; right: 1rem; }
+      .crud-item { flex-direction: column; }
+      .crud-item .btn { margin-top: 0.5rem; }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body data-theme="light">
+
+  <!-- Login -->
+  <div class="auth-container" id="login-page">
+    <div class="auth-card">
+      <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250821-WA0000-removebg-preview.png?raw=true" alt="Avisos Luminosos" class="logo-auth">
+      <h2>Iniciar Sesión</h2>
+      <input type="email" id="login-email" class="form-control" placeholder="Correo Gmail" required />
+      <input type="password" id="login-password" class="form-control" placeholder="Contraseña" required />
+      <button class="btn-auth" onclick="login()">Entrar</button>
+      <a href="#" class="link-auth d-block mt-3" onclick="showRegister()">Crear cuenta nueva</a>
+    </div>
+  </div>
+
+  <!-- Registro -->
+  <div class="auth-container hidden" id="register-page">
+    <div class="auth-card">
+      <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250821-WA0000-removebg-preview.png?raw=true" alt="Avisos Luminosos" class="logo-auth">
+      <h2>Crear Cuenta</h2>
+      <input type="text" id="register-name" class="form-control" placeholder="Nombre completo" required 
+        oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')" />
+      <input type="email" id="register-email" class="form-control" placeholder="Correo Gmail" required />
+      <input type="password" id="register-password" class="form-control" placeholder="Contraseña (mín. 6 caracteres)" required />
+      <button class="btn-auth" onclick="register()">Registrarme</button>
+      <a href="#" class="link-auth d-block mt-3" onclick="showLogin()">Ya tengo cuenta</a>
+    </div>
+  </div>
+
+  <!-- Dashboard Principal -->
+  <div class="dashboard hidden" id="main-container">
+    <div class="particles-container" id="particles-js"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+      <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+    </button>
+    <div class="container">
+      <div class="dashboard-header" id="logo-click-area">
+        <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250821-WA0000-removebg-preview.png?raw=true" 
+             alt="Logo" class="logo-dashboard" onclick="checkAdminAccess(event)">
+        <h1>Avisos Luminosos</h1>
+        <p>Sistemas de neón acrílico LED de alta calidad</p>
+        <p class="mt-2" style="color: var(--gris);">Bienvenido, <strong id="user-name-display" style="color: var(--azul);"></strong></p>
+      </div>
+
+      <div class="text-center">
+        <button class="btn-ideas" onclick="showIdeas()">Ver Todas las Ideas</button>
+        <button class="btn-admin" onclick="showCRUD()">Gestionar Clientes</button>
+        <button class="btn-admin" onclick="showProducts()" id="btn-products" style="display:none;">Gestionar Productos</button>
+        <button class="btn-admin" onclick="showSales()" id="btn-sales">Registrar Venta</button>
+      </div>
+
+      <div class="contact-card">
+        <h5>Contáctanos</h5>
+        <a href="https://www.google.com/maps?q=Cra.+56+No.+4-39,+Bogotá,+Colombia" target="_blank">
+          <i class="bi bi-geo-alt-fill"></i> Cra. 56 No. 4-39 / Piso 2, Bogotá
+        </a>
+        <a href="tel:+573114746536">
+          <i class="bi bi-telephone-fill"></i> 311 474 6536
+        </a>
+        <a href="https://www.instagram.com/avisosluminosossnc" target="_blank">
+          <i class="bi bi-instagram"></i> @avisosluminosossnc
+        </a>
+        <a href="mailto:systneocol2@hotmail.com">
+          <i class="bi bi-envelope-fill"></i> systneocol2@hotmail.com
+        </a>
+      </div>
+
+      <!-- CRUD de Clientes -->
+      <div class="crud-section hidden" id="crud-section">
+        <h4 class="text-center mb-4">Gestión de Clientes</h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#crudModal" onclick="openAddModal()">+ Agregar Cliente</button>
+        <div id="crud-list"></div>
+      </div>
+
+      <!-- Gestión de Productos -->
+      <div class="crud-section hidden" id="products-section">
+        <h4 class="text-center mb-4">Gestión de Productos</h4>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddProduct()">+ Agregar Producto</button>
+        <button class="btn btn-outline-danger btn-sm float-end" onclick="generateStockReport()">Reporte de Existencias (PDF)</button>
+        <div id="products-list" class="mt-4"></div>
+      </div>
+
+      <!-- Gestión de Ventas -->
+      <div class="crud-section hidden" id="sales-section">
+        <h4 class="text-center mb-4">Gestión de Ventas</h4>
+        <button class="btn-add" onclick="openAddSale()">+ Nueva Venta</button>
+        <div id="sales-list" class="mt-4"></div>
+      </div>
+
+      <!-- Gestión de Usuarios (Admin Secreto) -->
+      <div class="crud-section hidden" id="users-section">
+        <h4 class="text-center mb-4">Gestión de Usuarios (Admin)</h4>
+        <div id="users-list"></div>
+      </div>
+
+      <div class="text-center">
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Galería Completa -->
+  <div class="dashboard hidden" id="ideas-container">
+    <div class="particles-container" id="particles-js-2"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+      <i class="bi bi-moon-stars-fill" id="theme-icon-2"></i>
+    </button>
+    <div class="container">
+      <div class="dashboard-header">
+        <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250821-WA0000-removebg-preview.png?raw=true" alt="Logo" class="logo-dashboard">
+        <h1>Todas las Ideas</h1>
+        <p>Inspírate con nuestros 8 diseños luminosos</p>
+      </div>
+
+      <div class="gallery-section">
+        <div class="gallery">
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0011.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0011.jpg?raw=true" alt="Idea 1">
+            <div class="gallery-overlay">
+              <h5>Neón 3D</h5>
+              <p>Letras con profundidad</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0019.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0019.jpg?raw=true" alt="Idea 2">
+            <div class="gallery-overlay">
+              <h5>Aviso Exterior</h5>
+              <p>Resistente al clima</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0030.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0030.jpg?raw=true" alt="Idea 3">
+            <div class="gallery-overlay">
+              <h5>Interior Moderno</h5>
+              <p>Ambiente cálido</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0033.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0033.jpg?raw=true" alt="Idea 4">
+            <div class="gallery-overlay">
+              <h5>Logo Iluminado</h5>
+              <p>Marca brillante</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0035.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0035.jpg?raw=true" alt="Idea 5">
+            <div class="gallery-overlay">
+              <h5>Neón Decorativo</h5>
+              <p>Estilo único</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0040.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0040.jpg?raw=true" alt="Idea 6">
+            <div class="gallery-overlay">
+              <h5>Fachada LED</h5>
+              <p>Visibilidad total</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0044.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0044.jpg?raw=true" alt="Idea 7">
+            <div class="gallery-overlay">
+              <h5>Letras Gigantes</h5>
+              <p>Impacto visual</p>
+            </div>
+          </div>
+          <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="setModalImage(this)" data-src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0046.jpg?raw=true">
+            <img src="https://github.com/SportAlgorithmus/Avisos-Luminosos/blob/main/IMG-20250924-WA0046.jpg?raw=true" alt="Idea 8">
+            <div class="gallery-overlay">
+              <h5>Neón Artístico</h5>
+              <p>Diseño creativo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button class="btn-back" onclick="showMain()">Volver al Inicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal CRUD de Cliente -->
+  <div class="modal fade" id="crudModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="modalTitle">Agregar Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="person-name" class="form-control mb-3" placeholder="Nombre completo" 
+                 oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+          <input type="tel" id="person-phone" class="form-control mb-3" placeholder="Teléfono" maxlength="15"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          <input type="email" id="person-email" class="form-control mb-3" placeholder="Correo Gmail">
+          <input type="text" id="person-address" class="form-control mb-3" placeholder="Dirección"
+                 oninput="this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ#,\-\. ]/g, '')">
+          <textarea id="person-notes" class="form-control mb-3" rows="2" placeholder="Notas (opcional)"></textarea>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" id="saveBtn" onclick="savePerson()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Producto -->
+  <div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="productModalTitle">Agregar Producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="product-name" class="form-control mb-3" placeholder="Nombre del producto">
+          <input type="number" id="product-price" class="form-control mb-3" placeholder="Precio" min="0">
+          <input type="number" id="product-stock" class="form-control mb-3" placeholder="Existencias" min="0">
+          <textarea id="product-desc" class="form-control mb-3" rows="2" placeholder="Descripción"></textarea>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" onclick="saveProduct()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Venta -->
+  <div class="modal fade" id="saleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">Nueva Venta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <select id="sale-client" class="form-control mb-3">
+            <option value="">Seleccionar cliente</option>
+          </select>
+          <select id="sale-product" class="form-control mb-3">
+            <option value="">Seleccionar producto</option>
+          </select>
+          <input type="number" id="sale-quantity" class="form-control mb-3" placeholder="Cantidad" min="1">
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" onclick="saveSale()">Generar Factura</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Imagen -->
+  <div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content border-0 rounded-3 overflow-hidden">
+        <div class="modal-body p-0">
+          <img id="modalImage" src="" alt="Idea ampliada" class="img-fluid w-100">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+  <script>
+    // === VARIABLES GLOBALES ===
+    let editIndex = null;
+    let editProductIndex = null;
+    let logoClicks = 0;
+    const adminEmail = "admin@avisos.com"; // Cambia si quieres otro admin
+
+    // === HASH PASSWORD ===
+    function hashPassword(p) {
+      let h = 0; for (let i = 0; i < p.length; i++) h = ((h << 5) - h) + p.charCodeAt(i), h &= h;
+      return h.toString();
+    }
+
+    // === REGISTRO / LOGIN ===
+    function register() {
+  const name = document.getElementById('register-name').value.trim();
+  const email = document.getElementById('register-email').value.trim().toLowerCase();
+  const password = document.getElementById('register-password').value;
+
+  if (!name) return alert('El nombre es obligatorio');
+  if (password.length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
+
+  // PERMITIR admin@avisos.com SIN @gmail.com
+  if (email !== 'admin@avisos.com' && !email.endsWith('@gmail.com')) {
+    return alert('Debe ser un correo Gmail o admin@avisos.com');
+  }
+
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  if (users.some(u => u.email === email)) return alert('Este correo ya está registrado');
+
+  users.push({ 
+    name, 
+    email, 
+    password: hashPassword(password), 
+    role: email === 'admin@avisos.com' ? 'admin' : 'client', 
+    active: true 
+  });
+  localStorage.setItem('users', JSON.stringify(users));
+  loginUser(email, name, email === 'admin@avisos.com' ? 'admin' : 'client');
+}
+
+    function login() {
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.email === email && u.password === hashPassword(password) && u.active);
+      if (!user) return alert('Credenciales inválidas o usuario inactivo');
+      loginUser(email, user.name, user.role);
+    }
+
+    function loginUser(email, name, role) {
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify({ name, email, role }));
+      loadUserAndShowMain();
+    }
+
+    function loadUserAndShowMain() {
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      document.getElementById('user-name-display').textContent = user.name || 'Usuario';
+      showMain();
+      if (user.role === 'admin') {
+        document.getElementById('btn-products').style.display = 'inline-block';
+      }
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('currentUser');
+      hideAll();
+      document.getElementById('login-page').classList.remove('hidden');
+      document.body.setAttribute('data-theme', 'light');
+      updateThemeIcon();
+    }
+
+    // === ACCESO ADMIN (3 clics en logo) ===
+    function checkAdminAccess(e) {
+      logoClicks++;
+      if (logoClicks === 3) {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (user.role === 'admin') {
+          showUsers();
+          alert('Panel de Admin activado');
+        } else {
+          alert('Acceso denegado');
+        }
+        logoClicks = 0;
+      }
+      setTimeout(() => logoClicks = Math.max(0, logoClicks - 1), 2000);
+    }
+
+    // === NAVEGACIÓN ===
+    function showRegister() { hideAll(); document.getElementById('register-page').classList.remove('hidden'); }
+    function showLogin() { hideAll(); document.getElementById('login-page').classList.remove('hidden'); }
+    function showMain() { hideAll(); document.getElementById('main-container').classList.remove('hidden'); initParticles('particles-js'); }
+    function showIdeas() { hideAll(); document.getElementById('ideas-container').classList.remove('hidden'); initParticles('particles-js-2'); }
+    function showCRUD() { document.getElementById('crud-section').classList.remove('hidden'); loadCRUD(); }
+    function showProducts() { document.getElementById('products-section').classList.remove('hidden'); loadProducts(); }
+    function showSales() { document.getElementById('sales-section').classList.remove('hidden'); loadSales(); }
+    function showUsers() { document.getElementById('users-section').classList.remove('hidden'); loadUsers(); }
+
+    function hideAll() {
+      ['login-page', 'register-page', 'main-container', 'ideas-container', 'crud-section', 'products-section', 'sales-section', 'users-section'].forEach(id => 
+        document.getElementById(id)?.classList.add('hidden')
+      );
+    }
+
+    function setModalImage(el) {
+      document.getElementById('modalImage').src = el.getAttribute('data-src');
+    }
+
+    // === CRUD CLIENTES ===
+    function openAddModal() {
+      editIndex = null;
+      document.getElementById('modalTitle').textContent = 'Agregar Cliente';
+      ['person-name', 'person-phone', 'person-email', 'person-address', 'person-notes'].forEach(id => 
+        document.getElementById(id).value = ''
+      );
+    }
+
+    function openEditModal(index) {
+      const people = JSON.parse(localStorage.getItem('people') || '[]');
+      const p = people[index];
+      editIndex = index;
+      document.getElementById('modalTitle').textContent = 'Editar Cliente';
+      document.getElementById('person-name').value = p.name;
+      document.getElementById('person-phone').value = p.phone;
+      document.getElementById('person-email').value = p.email;
+      document.getElementById('person-address').value = p.address;
+      document.getElementById('person-notes').value = p.notes;
+      new bootstrap.Modal(document.getElementById('crudModal')).show();
+    }
+
+    function savePerson() {
+      const name = document.getElementById('person-name').value.trim();
+      const phone = document.getElementById('person-phone').value.trim();
+      const email = document.getElementById('person-email').value.trim().toLowerCase();
+      const address = document.getElementById('person-address').value.trim();
+      const notes = document.getElementById('person-notes').value.trim();
+
+      if (!name || !phone || phone.length < 7 || !email || !email.endsWith('@gmail.com')) return alert('Datos inválidos');
+
+      const people = JSON.parse(localStorage.getItem('people') || '[]');
+      if (editIndex !== null) {
+        people[editIndex] = { name, phone, email, address, notes };
+      } else {
+        people.push({ name, phone, email, address, notes });
+      }
+      localStorage.setItem('people', JSON.stringify(people));
+      bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+      loadCRUD();
+    }
+
+    function deletePerson(index) {
+      if (confirm('¿Eliminar este cliente?')) {
+        const people = JSON.parse(localStorage.getItem('people') || '[]');
+        people.splice(index, 1);
+        localStorage.setItem('people', JSON.stringify(people));
+        loadCRUD();
+      }
+    }
+
+    function loadCRUD() {
+      const list = document.getElementById('crud-list');
+      const people = JSON.parse(localStorage.getItem('people') || '[]');
+      list.innerHTML = people.length === 0 
+        ? '<p class="text-center text-muted">No hay clientes registrados.</p>'
+        : people.map((p, i) => `
+          <div class="crud-item">
+            <div class="crud-info">
+              <h6>${p.name}</h6>
+              <p><i class="bi bi-telephone"></i> ${p.phone} | <i class="bi bi-envelope"></i> ${p.email}</p>
+              ${p.address ? `<p><i class="bi bi-geo-alt"></i> ${p.address}</p>` : ''}
+              ${p.notes ? `<p><small><i class="bi bi-chat-dots"></i> ${p.notes}</small></p>` : ''}
+            </div>
+            <div>
+              <button class="btn btn-edit btn-sm" onclick="openEditModal(${i})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-delete btn-sm" onclick="deletePerson(${i})"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    // === CRUD PRODUCTOS ===
+    function openAddProduct() {
+      editProductIndex = null;
+      document.getElementById('productModalTitle').textContent = 'Agregar Producto';
+      ['product-name', 'product-price', 'product-stock', 'product-desc'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function saveProduct() {
+      const name = document.getElementById('product-name').value.trim();
+      const price = parseFloat(document.getElementById('product-price').value);
+      const stock = parseInt(document.getElementById('product-stock').value);
+      const desc = document.getElementById('product-desc').value.trim();
+      if (!name || isNaN(price) || isNaN(stock)) return alert('Completa los campos');
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      if (editProductIndex !== null) {
+        products[editProductIndex] = { name, price, stock, desc };
+      } else {
+        products.push({ name, price, stock, desc });
+      }
+      localStorage.setItem('products', JSON.stringify(products));
+      bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+      loadProducts();
+    }
+
+    function loadProducts() {
+      const list = document.getElementById('products-list');
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      list.innerHTML = products.length === 0 
+        ? '<p class="text-center text-muted">No hay productos.</p>'
+        : products.map((p, i) => `
+          <div class="crud-item">
+            <div class="crud-info">
+              <h6>${p.name}</h6>
+              <p>Precio: $${p.price} | Stock: ${p.stock}</p>
+              ${p.desc ? `<p><small>${p.desc}</small></p>` : ''}
+            </div>
+            <div>
+              <button class="btn btn-edit btn-sm" onclick="editProduct(${i})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-delete btn-sm" onclick="deleteProduct(${i})"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    function editProduct(i) {
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      const p = products[i];
+      editProductIndex = i;
+      document.getElementById('productModalTitle').textContent = 'Editar Producto';
+      document.getElementById('product-name').value = p.name;
+      document.getElementById('product-price').value = p.price;
+      document.getElementById('product-stock').value = p.stock;
+      document.getElementById('product-desc').value = p.desc;
+      new bootstrap.Modal(document.getElementById('productModal')).show();
+    }
+
+    function deleteProduct(i) {
+      if (confirm('¿Eliminar producto?')) {
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        products.splice(i, 1);
+        localStorage.setItem('products', JSON.stringify(products));
+        loadProducts();
+      }
+    }
+
+    // === REPORTES PDF ===
+    function generateStockReport() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text('Reporte de Existencias', 105, 20, { align: 'center' });
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      let y = 40;
+      products.forEach(p => {
+        doc.setFontSize(12);
+        doc.text(`${p.name} - Stock: ${p.stock} - $${p.price}`, 20, y);
+        y += 10;
+      });
+      doc.save('existencias.pdf');
+    }
+
+    // === VENTAS ===
+    function openAddSale() {
+      const saleClient = document.getElementById('sale-client');
+      const saleProduct = document.getElementById('sale-product');
+      const people = JSON.parse(localStorage.getItem('people') || '[]');
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      saleClient.innerHTML = '<option value="">Seleccionar cliente</option>' + people.map(p => `<option value="${p.email}">${p.name}</option>`).join('');
+      saleProduct.innerHTML = '<option value="">Seleccionar producto</option>' + products.map(p => `<option value="${p.name}">${p.name} ($${p.price})</option>`).join('');
+      new bootstrap.Modal(document.getElementById('saleModal')).show();
+    }
+
+    function saveSale() {
+      const clientEmail = document.getElementById('sale-client').value;
+      const productName = document.getElementById('sale-product').value;
+      const quantity = parseInt(document.getElementById('sale-quantity').value);
+      if (!clientEmail || !productName || !quantity) return alert('Completa todos los campos');
+
+      const people = JSON.parse(localStorage.getItem('people') || '[]');
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      const client = people.find(p => p.email === clientEmail);
+      const product = products.find(p => p.name === productName);
+      if (product.stock < quantity) return alert('Stock insuficiente');
+
+      product.stock -= quantity;
+      localStorage.setItem('products', JSON.stringify(products));
+
+      const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+      const sale = { client: client.name, product: product.name, quantity, total: product.price * quantity, date: new Date().toLocaleString() };
+      sales.push(sale);
+      localStorage.setItem('sales', JSON.stringify(sales));
+
+      // Generar factura
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text('FACTURA - Avisos Luminosos SNC', 105, 20, { align: 'center' });
+      doc.setFontSize(12);
+      doc.text(`Cliente: ${client.name}`, 20, 40);
+      doc.text(`Producto: ${product.name}`, 20, 50);
+      doc.text(`Cantidad: ${quantity}`, 20, 60);
+      doc.text(`Total: $${sale.total}`, 20, 70);
+      doc.text(`Fecha: ${sale.date}`, 20, 80);
+      doc.save(`factura_${client.name}_${Date.now()}.pdf`);
+
+      bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
+      loadSales();
+    }
+
+    function loadSales() {
+      const list = document.getElementById('sales-list');
+      const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+      list.innerHTML = sales.length === 0 
+        ? '<p class="text-center text-muted">No hay ventas.</p>'
+        : sales.map((s, i) => `
+          <div class="crud-item">
+            <div class="crud-info">
+              <h6>${s.client} - ${s.product}</h6>
+              <p>Cantidad: ${s.quantity} | Total: $${s.total} | ${s.date}</p>
+            </div>
+          </div>
+        `).join('');
+    }
+
+    // === USUARIOS (ADMIN) ===
+    function loadUsers() {
+      const list = document.getElementById('users-list');
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      list.innerHTML = users.map(u => `
+        <div class="crud-item">
+          <div class="crud-info">
+            <h6>${u.name} (${u.role})</h6>
+            <p>${u.email} ${u.active ? '' : '(Inactivo)'}</p>
+          </div>
+          <div>
+            <button class="btn btn-sm ${u.active ? 'btn-warning' : 'btn-success'}" onclick="toggleUser('${u.email}')">
+              ${u.active ? 'Inactivar' : 'Activar'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleUser(email) {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.email === email);
+      user.active = !user.active;
+      localStorage.setItem('users', JSON.stringify(users));
+      loadUsers();
+    }
+
+    // === MODO OSCURO ===
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', newTheme);
+      updateThemeIcon();
+      localStorage.setItem('theme', newTheme);
+      if (!document.getElementById('main-container').classList.contains('hidden')) initParticles('particles-js');
+      if (!document.getElementById('ideas-container').classList.contains('hidden')) initParticles('particles-js-2');
+    }
+
+    function updateThemeIcon() {
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      document.querySelectorAll('#theme-icon, #theme-icon-2').forEach(icon => {
+        icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+      });
+    }
+
+    // === INICIO ===
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+      updateThemeIcon();
+      checkSession();
+    };
+
+    function checkSession() {
+      if (localStorage.getItem('isLoggedIn') === 'true') {
+        loadUserAndShowMain();
+      } else {
+        document.getElementById('login-page').classList.remove('hidden');
+      }
+    }
+
+    // === PARTÍCULAS ===
+    function initParticles(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (window.pJSDom && window.pJSDom.length > 0) {
+        window.pJSDom.forEach(pJ => pJ.pJS.fn.vendors.destroy());
+        window.pJSDom = [];
+      }
+      particlesJS(containerId, {
+        particles: {
+          number: { value: containerId === 'particles-js-2' ? 60 : 80, density: { enable: true, value_area: 800 } },
+          color: { value: document.body.getAttribute('data-theme') === 'dark' ? '#3B82F6' : '#FF6B35' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: { 
+            enable: true, 
+            distance: containerId === 'particles-js-2' ? 120 : 150, 
+            color: document.body.getAttribute('data-theme') === 'dark' ? '#3B82F6' : '#FF6B35', 
+            opacity: 0.2, 
+            width: 1 
+          },
+          move: { enable: true, speed: containerId === 'particles-js-2' ? 1.5 : 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: { 
+            onhover: { enable: true, mode: containerId === 'particles-js-2' ? 'grab' : 'repulse' }, 
+            onclick: { enable: true, mode: 'push' }, 
+            resize: true 
+          },
+          modes: { 
+            repulse: { distance: 100, duration: 0.4 }, 
+            grab: { distance: 140, line_linked: { opacity: 0.5 } },
+            push: { particles_nb: 4 } 
+          }
+        },
+        retina_detect: true
+      });
+    }
+  </script>
+</body>
+</html>
