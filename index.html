@@ -940,53 +940,71 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
   <script>
+    // === CONFIGURACIÓN DE LA API (XAMPP) ===
+    // Si esta página NO está en la misma carpeta que "api/", cambia esta ruta
+    // por la URL completa, ej: 'http://localhost/avisos_proyecto/api'
+    const API_URL = 'api';
+
     // === VARIABLES GLOBALES ===
-    let editIndex = null;
-    let editProductIndex = null;
+    let editId = null;
+    let editProductId = null;
     let logoClicks = 0;
+    let clientesCache = [];
+    let productosCache = [];
     const adminEmail = "admin@avisos.com"; // Cambia si quieres otro admin
 
-    // === HASH PASSWORD ===
-    function hashPassword(p) {
-      let h = 0; for (let i = 0; i < p.length; i++) h = ((h << 5) - h) + p.charCodeAt(i), h &= h;
-      return h.toString();
+    // === AYUDANTE PARA LLAMAR A LA API ===
+    async function apiFetch(url, options = {}) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Ocurrió un error en el servidor');
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo conectar con el servidor. Verifica que XAMPP (Apache y MySQL) esté encendido.');
+        return null;
+      }
     }
 
     // === REGISTRO / LOGIN ===
-    function register() {
-  const name = document.getElementById('register-name').value.trim();
-  const email = document.getElementById('register-email').value.trim().toLowerCase();
-  const password = document.getElementById('register-password').value;
+    async function register() {
+      const nombre = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim().toLowerCase();
+      const password = document.getElementById('register-password').value;
 
-  if (!name) return alert('El nombre es obligatorio');
-  if (password.length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
+      if (!nombre) return alert('El nombre es obligatorio');
+      if (password.length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
+      if (email !== 'admin@avisos.com' && !email.endsWith('@gmail.com')) {
+        return alert('Debe ser un correo Gmail o admin@avisos.com');
+      }
 
-  // PERMITIR admin@avisos.com SIN @gmail.com
-  if (email !== 'admin@avisos.com' && !email.endsWith('@gmail.com')) {
-    return alert('Debe ser un correo Gmail o admin@avisos.com');
-  }
+      const data = await apiFetch(`${API_URL}/auth.php?accion=registro`, {
+        method: 'POST',
+        body: JSON.stringify({ nombre, email, password })
+      });
+      if (!data) return;
 
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
-  if (users.some(u => u.email === email)) return alert('Este correo ya está registrado');
+      loginUser(data.usuario.email, data.usuario.name, data.usuario.role);
+    }
 
-  users.push({ 
-    name, 
-    email, 
-    password: hashPassword(password), 
-    role: email === 'admin@avisos.com' ? 'admin' : 'client', 
-    active: true 
-  });
-  localStorage.setItem('users', JSON.stringify(users));
-  loginUser(email, name, email === 'admin@avisos.com' ? 'admin' : 'client');
-}
-
-    function login() {
+    async function login() {
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === email && u.password === hashPassword(password) && u.active);
-      if (!user) return alert('Credenciales inválidas o usuario inactivo');
-      loginUser(email, user.name, user.role);
+
+      const data = await apiFetch(`${API_URL}/auth.php?accion=login`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      if (!data) return;
+
+      loginUser(data.usuario.email, data.usuario.name, data.usuario.role);
     }
 
     function loginUser(email, name, role) {
@@ -1040,7 +1058,7 @@
     function showUsers() { document.getElementById('users-section').classList.remove('hidden'); loadUsers(); }
 
     function hideAll() {
-      ['login-page', 'register-page', 'main-container', 'ideas-container', 'crud-section', 'products-section', 'sales-section', 'users-section'].forEach(id => 
+      ['login-page', 'register-page', 'main-container', 'ideas-container', 'crud-section', 'products-section', 'sales-section', 'users-section'].forEach(id =>
         document.getElementById(id)?.classList.add('hidden')
       );
     }
@@ -1051,71 +1069,70 @@
 
     // === CRUD CLIENTES ===
     function openAddModal() {
-      editIndex = null;
+      editId = null;
       document.getElementById('modalTitle').textContent = 'Agregar Cliente';
-      ['person-name', 'person-phone', 'person-email', 'person-address', 'person-notes'].forEach(id => 
+      ['person-name', 'person-phone', 'person-email', 'person-address', 'person-notes'].forEach(id =>
         document.getElementById(id).value = ''
       );
     }
 
-    function openEditModal(index) {
-      const people = JSON.parse(localStorage.getItem('people') || '[]');
-      const p = people[index];
-      editIndex = index;
+    function openEditModal(id) {
+      const p = clientesCache.find(c => c.id == id);
+      if (!p) return;
+      editId = id;
       document.getElementById('modalTitle').textContent = 'Editar Cliente';
-      document.getElementById('person-name').value = p.name;
-      document.getElementById('person-phone').value = p.phone;
+      document.getElementById('person-name').value = p.nombre;
+      document.getElementById('person-phone').value = p.telefono;
       document.getElementById('person-email').value = p.email;
-      document.getElementById('person-address').value = p.address;
-      document.getElementById('person-notes').value = p.notes;
+      document.getElementById('person-address').value = p.direccion;
+      document.getElementById('person-notes').value = p.notas;
       new bootstrap.Modal(document.getElementById('crudModal')).show();
     }
 
-    function savePerson() {
-      const name = document.getElementById('person-name').value.trim();
-      const phone = document.getElementById('person-phone').value.trim();
+    async function savePerson() {
+      const nombre = document.getElementById('person-name').value.trim();
+      const telefono = document.getElementById('person-phone').value.trim();
       const email = document.getElementById('person-email').value.trim().toLowerCase();
-      const address = document.getElementById('person-address').value.trim();
-      const notes = document.getElementById('person-notes').value.trim();
+      const direccion = document.getElementById('person-address').value.trim();
+      const notas = document.getElementById('person-notes').value.trim();
 
-      if (!name || !phone || phone.length < 7 || !email || !email.endsWith('@gmail.com')) return alert('Datos inválidos');
+      if (!nombre || !telefono || telefono.length < 7 || !email || !email.endsWith('@gmail.com')) return alert('Datos inválidos');
 
-      const people = JSON.parse(localStorage.getItem('people') || '[]');
-      if (editIndex !== null) {
-        people[editIndex] = { name, phone, email, address, notes };
-      } else {
-        people.push({ name, phone, email, address, notes });
-      }
-      localStorage.setItem('people', JSON.stringify(people));
+      const url = editId ? `${API_URL}/clientes.php?id=${editId}` : `${API_URL}/clientes.php`;
+      const data = await apiFetch(url, {
+        method: editId ? 'PUT' : 'POST',
+        body: JSON.stringify({ nombre, telefono, email, direccion, notas })
+      });
+      if (!data) return;
+
       bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
       loadCRUD();
     }
 
-    function deletePerson(index) {
-      if (confirm('¿Eliminar este cliente?')) {
-        const people = JSON.parse(localStorage.getItem('people') || '[]');
-        people.splice(index, 1);
-        localStorage.setItem('people', JSON.stringify(people));
-        loadCRUD();
-      }
+    async function deletePerson(id) {
+      if (!confirm('¿Eliminar este cliente?')) return;
+      const data = await apiFetch(`${API_URL}/clientes.php?id=${id}`, { method: 'DELETE' });
+      if (!data) return;
+      loadCRUD();
     }
 
-    function loadCRUD() {
+    async function loadCRUD() {
       const list = document.getElementById('crud-list');
-      const people = JSON.parse(localStorage.getItem('people') || '[]');
-      list.innerHTML = people.length === 0 
+      const data = await apiFetch(`${API_URL}/clientes.php`);
+      clientesCache = data || [];
+      list.innerHTML = clientesCache.length === 0
         ? '<p class="text-center text-muted">No hay clientes registrados.</p>'
-        : people.map((p, i) => `
+        : clientesCache.map(p => `
           <div class="crud-item">
             <div class="crud-info">
-              <h6>${p.name}</h6>
-              <p><i class="bi bi-telephone"></i> ${p.phone} | <i class="bi bi-envelope"></i> ${p.email}</p>
-              ${p.address ? `<p><i class="bi bi-geo-alt"></i> ${p.address}</p>` : ''}
-              ${p.notes ? `<p><small><i class="bi bi-chat-dots"></i> ${p.notes}</small></p>` : ''}
+              <h6>${p.nombre}</h6>
+              <p><i class="bi bi-telephone"></i> ${p.telefono} | <i class="bi bi-envelope"></i> ${p.email}</p>
+              ${p.direccion ? `<p><i class="bi bi-geo-alt"></i> ${p.direccion}</p>` : ''}
+              ${p.notas ? `<p><small><i class="bi bi-chat-dots"></i> ${p.notas}</small></p>` : ''}
             </div>
             <div>
-              <button class="btn btn-edit btn-sm" onclick="openEditModal(${i})"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-delete btn-sm" onclick="deletePerson(${i})"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-edit btn-sm" onclick="openEditModal(${p.id})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-delete btn-sm" onclick="deletePerson(${p.id})"><i class="bi bi-trash"></i></button>
             </div>
           </div>
         `).join('');
@@ -1123,115 +1140,114 @@
 
     // === CRUD PRODUCTOS ===
     function openAddProduct() {
-      editProductIndex = null;
+      editProductId = null;
       document.getElementById('productModalTitle').textContent = 'Agregar Producto';
       ['product-name', 'product-price', 'product-stock', 'product-desc'].forEach(id => document.getElementById(id).value = '');
     }
 
-    function saveProduct() {
-      const name = document.getElementById('product-name').value.trim();
-      const price = parseFloat(document.getElementById('product-price').value);
+    async function saveProduct() {
+      const nombre = document.getElementById('product-name').value.trim();
+      const precio = parseFloat(document.getElementById('product-price').value);
       const stock = parseInt(document.getElementById('product-stock').value);
-      const desc = document.getElementById('product-desc').value.trim();
-      if (!name || isNaN(price) || isNaN(stock)) return alert('Completa los campos');
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      if (editProductIndex !== null) {
-        products[editProductIndex] = { name, price, stock, desc };
-      } else {
-        products.push({ name, price, stock, desc });
-      }
-      localStorage.setItem('products', JSON.stringify(products));
+      const descripcion = document.getElementById('product-desc').value.trim();
+      if (!nombre || isNaN(precio) || isNaN(stock)) return alert('Completa los campos');
+
+      const url = editProductId ? `${API_URL}/productos.php?id=${editProductId}` : `${API_URL}/productos.php`;
+      const data = await apiFetch(url, {
+        method: editProductId ? 'PUT' : 'POST',
+        body: JSON.stringify({ nombre, precio, stock, descripcion })
+      });
+      if (!data) return;
+
       bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
       loadProducts();
     }
 
-    function loadProducts() {
+    async function loadProducts() {
       const list = document.getElementById('products-list');
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      list.innerHTML = products.length === 0 
+      const data = await apiFetch(`${API_URL}/productos.php`);
+      productosCache = data || [];
+      list.innerHTML = productosCache.length === 0
         ? '<p class="text-center text-muted">No hay productos.</p>'
-        : products.map((p, i) => `
+        : productosCache.map(p => `
           <div class="crud-item">
             <div class="crud-info">
-              <h6>${p.name}</h6>
-              <p>Precio: $${p.price} | Stock: ${p.stock}</p>
-              ${p.desc ? `<p><small>${p.desc}</small></p>` : ''}
+              <h6>${p.nombre}</h6>
+              <p>Precio: $${p.precio} | Stock: ${p.stock}</p>
+              ${p.descripcion ? `<p><small>${p.descripcion}</small></p>` : ''}
             </div>
             <div>
-              <button class="btn btn-edit btn-sm" onclick="editProduct(${i})"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-delete btn-sm" onclick="deleteProduct(${i})"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-edit btn-sm" onclick="editProduct(${p.id})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-delete btn-sm" onclick="deleteProduct(${p.id})"><i class="bi bi-trash"></i></button>
             </div>
           </div>
         `).join('');
     }
 
-    function editProduct(i) {
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      const p = products[i];
-      editProductIndex = i;
+    function editProduct(id) {
+      const p = productosCache.find(pr => pr.id == id);
+      if (!p) return;
+      editProductId = id;
       document.getElementById('productModalTitle').textContent = 'Editar Producto';
-      document.getElementById('product-name').value = p.name;
-      document.getElementById('product-price').value = p.price;
+      document.getElementById('product-name').value = p.nombre;
+      document.getElementById('product-price').value = p.precio;
       document.getElementById('product-stock').value = p.stock;
-      document.getElementById('product-desc').value = p.desc;
+      document.getElementById('product-desc').value = p.descripcion;
       new bootstrap.Modal(document.getElementById('productModal')).show();
     }
 
-    function deleteProduct(i) {
-      if (confirm('¿Eliminar producto?')) {
-        const products = JSON.parse(localStorage.getItem('products') || '[]');
-        products.splice(i, 1);
-        localStorage.setItem('products', JSON.stringify(products));
-        loadProducts();
-      }
+    async function deleteProduct(id) {
+      if (!confirm('¿Eliminar producto?')) return;
+      const data = await apiFetch(`${API_URL}/productos.php?id=${id}`, { method: 'DELETE' });
+      if (!data) return;
+      loadProducts();
     }
 
     // === REPORTES PDF ===
-    function generateStockReport() {
+    async function generateStockReport() {
+      const data = await apiFetch(`${API_URL}/productos.php`);
+      if (!data) return;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       doc.setFontSize(16);
       doc.text('Reporte de Existencias', 105, 20, { align: 'center' });
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
       let y = 40;
-      products.forEach(p => {
+      data.forEach(p => {
         doc.setFontSize(12);
-        doc.text(`${p.name} - Stock: ${p.stock} - $${p.price}`, 20, y);
+        doc.text(`${p.nombre} - Stock: ${p.stock} - $${p.precio}`, 20, y);
         y += 10;
       });
       doc.save('existencias.pdf');
     }
 
     // === VENTAS ===
-    function openAddSale() {
+    async function openAddSale() {
       const saleClient = document.getElementById('sale-client');
       const saleProduct = document.getElementById('sale-product');
-      const people = JSON.parse(localStorage.getItem('people') || '[]');
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      saleClient.innerHTML = '<option value="">Seleccionar cliente</option>' + people.map(p => `<option value="${p.email}">${p.name}</option>`).join('');
-      saleProduct.innerHTML = '<option value="">Seleccionar producto</option>' + products.map(p => `<option value="${p.name}">${p.name} ($${p.price})</option>`).join('');
+      const [clientes, productos] = await Promise.all([
+        apiFetch(`${API_URL}/clientes.php`),
+        apiFetch(`${API_URL}/productos.php`)
+      ]);
+      clientesCache = clientes || [];
+      productosCache = productos || [];
+      saleClient.innerHTML = '<option value="">Seleccionar cliente</option>' + clientesCache.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+      saleProduct.innerHTML = '<option value="">Seleccionar producto</option>' + productosCache.map(p => `<option value="${p.id}">${p.nombre} ($${p.precio})</option>`).join('');
       new bootstrap.Modal(document.getElementById('saleModal')).show();
     }
 
-    function saveSale() {
-      const clientEmail = document.getElementById('sale-client').value;
-      const productName = document.getElementById('sale-product').value;
-      const quantity = parseInt(document.getElementById('sale-quantity').value);
-      if (!clientEmail || !productName || !quantity) return alert('Completa todos los campos');
+    async function saveSale() {
+      const clienteId = document.getElementById('sale-client').value;
+      const productoId = document.getElementById('sale-product').value;
+      const cantidad = parseInt(document.getElementById('sale-quantity').value);
+      if (!clienteId || !productoId || !cantidad) return alert('Completa todos los campos');
 
-      const people = JSON.parse(localStorage.getItem('people') || '[]');
-      const products = JSON.parse(localStorage.getItem('products') || '[]');
-      const client = people.find(p => p.email === clientEmail);
-      const product = products.find(p => p.name === productName);
-      if (product.stock < quantity) return alert('Stock insuficiente');
+      const data = await apiFetch(`${API_URL}/ventas.php`, {
+        method: 'POST',
+        body: JSON.stringify({ cliente_id: clienteId, producto_id: productoId, cantidad })
+      });
+      if (!data) return;
 
-      product.stock -= quantity;
-      localStorage.setItem('products', JSON.stringify(products));
-
-      const sales = JSON.parse(localStorage.getItem('sales') || '[]');
-      const sale = { client: client.name, product: product.name, quantity, total: product.price * quantity, date: new Date().toLocaleString() };
-      sales.push(sale);
-      localStorage.setItem('sales', JSON.stringify(sales));
+      const venta = data.venta;
 
       // Generar factura
       const { jsPDF } = window.jspdf;
@@ -1239,56 +1255,59 @@
       doc.setFontSize(16);
       doc.text('FACTURA - Avisos Luminosos SNC', 105, 20, { align: 'center' });
       doc.setFontSize(12);
-      doc.text(`Cliente: ${client.name}`, 20, 40);
-      doc.text(`Producto: ${product.name}`, 20, 50);
-      doc.text(`Cantidad: ${quantity}`, 20, 60);
-      doc.text(`Total: $${sale.total}`, 20, 70);
-      doc.text(`Fecha: ${sale.date}`, 20, 80);
-      doc.save(`factura_${client.name}_${Date.now()}.pdf`);
+      doc.text(`Cliente: ${venta.cliente}`, 20, 40);
+      doc.text(`Producto: ${venta.producto}`, 20, 50);
+      doc.text(`Cantidad: ${venta.cantidad}`, 20, 60);
+      doc.text(`Total: $${venta.total}`, 20, 70);
+      doc.text(`Fecha: ${venta.fecha}`, 20, 80);
+      doc.save(`factura_${venta.cliente}_${Date.now()}.pdf`);
 
       bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
       loadSales();
     }
 
-    function loadSales() {
+    async function loadSales() {
       const list = document.getElementById('sales-list');
-      const sales = JSON.parse(localStorage.getItem('sales') || '[]');
-      list.innerHTML = sales.length === 0 
+      const data = await apiFetch(`${API_URL}/ventas.php`);
+      const sales = data || [];
+      list.innerHTML = sales.length === 0
         ? '<p class="text-center text-muted">No hay ventas.</p>'
-        : sales.map((s, i) => `
+        : sales.map(s => `
           <div class="crud-item">
             <div class="crud-info">
-              <h6>${s.client} - ${s.product}</h6>
-              <p>Cantidad: ${s.quantity} | Total: $${s.total} | ${s.date}</p>
+              <h6>${s.cliente} - ${s.producto}</h6>
+              <p>Cantidad: ${s.cantidad} | Total: $${s.total} | ${new Date(s.fecha).toLocaleString()}</p>
             </div>
           </div>
         `).join('');
     }
 
     // === USUARIOS (ADMIN) ===
-    function loadUsers() {
+    async function loadUsers() {
       const list = document.getElementById('users-list');
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const data = await apiFetch(`${API_URL}/usuarios.php`);
+      const users = data || [];
       list.innerHTML = users.map(u => `
         <div class="crud-item">
           <div class="crud-info">
-            <h6>${u.name} (${u.role})</h6>
-            <p>${u.email} ${u.active ? '' : '(Inactivo)'}</p>
+            <h6>${u.nombre} (${u.rol})</h6>
+            <p>${u.email} ${u.activo == 1 ? '' : '(Inactivo)'}</p>
           </div>
           <div>
-            <button class="btn btn-sm ${u.active ? 'btn-warning' : 'btn-success'}" onclick="toggleUser('${u.email}')">
-              ${u.active ? 'Inactivar' : 'Activar'}
+            <button class="btn btn-sm ${u.activo == 1 ? 'btn-warning' : 'btn-success'}" onclick="toggleUser('${u.email}')">
+              ${u.activo == 1 ? 'Inactivar' : 'Activar'}
             </button>
           </div>
         </div>
       `).join('');
     }
 
-    function toggleUser(email) {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === email);
-      user.active = !user.active;
-      localStorage.setItem('users', JSON.stringify(users));
+    async function toggleUser(email) {
+      const data = await apiFetch(`${API_URL}/usuarios.php`, {
+        method: 'PUT',
+        body: JSON.stringify({ email })
+      });
+      if (!data) return;
       loadUsers();
     }
 
@@ -1341,26 +1360,26 @@
           shape: { type: 'circle' },
           opacity: { value: 0.5, random: true },
           size: { value: 3, random: true },
-          line_linked: { 
-            enable: true, 
-            distance: containerId === 'particles-js-2' ? 120 : 150, 
-            color: document.body.getAttribute('data-theme') === 'dark' ? '#3B82F6' : '#FF6B35', 
-            opacity: 0.2, 
-            width: 1 
+          line_linked: {
+            enable: true,
+            distance: containerId === 'particles-js-2' ? 120 : 150,
+            color: document.body.getAttribute('data-theme') === 'dark' ? '#3B82F6' : '#FF6B35',
+            opacity: 0.2,
+            width: 1
           },
           move: { enable: true, speed: containerId === 'particles-js-2' ? 1.5 : 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
         },
         interactivity: {
           detect_on: 'canvas',
-          events: { 
-            onhover: { enable: true, mode: containerId === 'particles-js-2' ? 'grab' : 'repulse' }, 
-            onclick: { enable: true, mode: 'push' }, 
-            resize: true 
+          events: {
+            onhover: { enable: true, mode: containerId === 'particles-js-2' ? 'grab' : 'repulse' },
+            onclick: { enable: true, mode: 'push' },
+            resize: true
           },
-          modes: { 
-            repulse: { distance: 100, duration: 0.4 }, 
+          modes: {
+            repulse: { distance: 100, duration: 0.4 },
             grab: { distance: 140, line_linked: { opacity: 0.5 } },
-            push: { particles_nb: 4 } 
+            push: { particles_nb: 4 }
           }
         },
         retina_detect: true
